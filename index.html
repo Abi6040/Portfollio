@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Abinesh Portfolio | Creative Developer</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        // The page already uses gold-* classes; define the palette so they actually render
+        tailwind.config = {
+            theme: { extend: { colors: { gold: { 400: '#e5c158', 500: '#d4af37' } } } }
+        };
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
 
@@ -270,7 +276,11 @@
 
         /* Project Card Hover Effect */
         .project-card {
-            transition: all 0.3s ease;
+            position: relative;
+            /* longhands (no delay) so the staggered reveal delays still apply */
+            transition-property: transform, box-shadow, opacity;
+            transition-duration: 0.5s;
+            transition-timing-function: ease;
             transform-style: preserve-3d;
         }
 
@@ -308,17 +318,284 @@
             -ms-overflow-style: none;
             scrollbar-width: none;
         }
+
+        /* ================= Interactive & animated layer ================= */
+        #loading {
+            transition: opacity 0.5s ease;
+        }
+
+        a:focus-visible,
+        button:focus-visible,
+        input:focus-visible,
+        textarea:focus-visible {
+            outline: 2px solid #818cf8;
+            outline-offset: 3px;
+        }
+
+        /* Hold the hero intro until the loader has gone */
+        body:not(.loaded) .fade-in.visible {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: none;
+        }
+
+        /* Reveal variants */
+        .fade-in.reveal-left:not(.visible) {
+            transform: translateX(-48px);
+        }
+
+        .fade-in.reveal-right:not(.visible) {
+            transform: translateX(48px);
+        }
+
+        .fade-in.line-grow {
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out, clip-path 0.9s ease-out;
+        }
+
+        .fade-in.line-grow:not(.visible) {
+            clip-path: inset(0 50% 0 50%);
+        }
+
+        /* Scroll progress bar */
+        #scroll-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            z-index: 60;
+            pointer-events: none;
+            transform-origin: left;
+            transform: scaleX(0);
+            background: linear-gradient(90deg, #818cf8, #22d3ee, #e5c158);
+        }
+
+        /* Cursor glow */
+        #cursor-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            mix-blend-mode: screen;
+            will-change: transform;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.18), rgba(212, 175, 55, 0.06) 40%, transparent 70%);
+            transition: opacity 0.4s ease;
+        }
+
+        @media (hover: none) {
+            #cursor-glow {
+                display: none;
+            }
+        }
+
+        /* Hero name shimmer */
+        .name-shimmer {
+            background: linear-gradient(90deg, #e5c158, #818cf8, #22d3ee, #e5c158);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 6s linear infinite;
+        }
+
+        @keyframes shimmer {
+            to {
+                background-position: 300% 0;
+            }
+        }
+
+        .type-caret {
+            display: inline-block;
+            width: 2px;
+            height: 1.1em;
+            margin-left: 3px;
+            vertical-align: text-bottom;
+            background: #818cf8;
+            animation: blink 1s infinite;
+        }
+
+        /* Nav links: animated underline + scroll-spy state */
+        .nav-link {
+            position: relative;
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            bottom: 2px;
+            height: 2px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, #818cf8, #e5c158);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link:hover::after,
+        .nav-link[aria-current="true"]::after {
+            transform: scaleX(1);
+        }
+
+        .nav-link[aria-current="true"],
+        #mobile-menu a[aria-current="true"] {
+            color: #a5b4fc;
+        }
+
+        nav.scrolled {
+            box-shadow: 0 10px 30px -12px rgba(0, 0, 0, 0.6);
+            background-color: rgba(15, 23, 42, 0.92);
+        }
+
+        /* Tilt cards */
+        .skill-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-card i {
+            transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .skill-card:hover i {
+            transform: scale(1.25) rotate(-8deg);
+        }
+
+        .tilt-glare {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.16), transparent 55%);
+        }
+
+        .is-tilting {
+            transition-duration: 0.12s !important;
+        }
+
+        .is-tilting .tilt-glare {
+            opacity: 1;
+        }
+
+        /* Skill bars */
+        .skill-bar {
+            transition: width 1.4s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        /* Toast + form feedback */
+        #toast {
+            position: fixed;
+            left: 50%;
+            bottom: 28px;
+            z-index: 70;
+            max-width: calc(100vw - 32px);
+            padding: 12px 20px;
+            border-radius: 999px;
+            border: 1px solid rgba(129, 140, 248, 0.5);
+            background: rgba(15, 23, 42, 0.95);
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transform: translate(-50%, 20px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        #toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .field-invalid {
+            border-color: #f87171 !important;
+        }
+
+        .shake {
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-6px);
+            }
+
+            75% {
+                transform: translateX(6px);
+            }
+        }
+
+        /* Resume overlay entrance */
+        #resumeOverlay:not(.hidden) {
+            animation: overlayIn 0.3s ease;
+        }
+
+        #resumeOverlay:not(.hidden)>div {
+            animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes overlayIn {
+            from {
+                opacity: 0;
+            }
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(12px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                transition-delay: 0s !important;
+            }
+
+            .fade-in,
+            body:not(.loaded) .fade-in.visible {
+                opacity: 1 !important;
+                transform: none !important;
+                clip-path: none !important;
+            }
+
+            .animate-scroll {
+                animation: none !important;
+            }
+        }
     </style>
 </head>
 
 <body class="min-h-screen">
+    <div id="scroll-progress" aria-hidden="true"></div>
+    <div id="cursor-glow" aria-hidden="true"></div>
+    <div id="toast" role="status" aria-live="polite"></div>
+
     <!-- Animated Background -->
     <div class="fixed inset-0 -z-10 overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-indigo-900/20 to-cyan-900/20"></div>
         <div class="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10"></div>
         <div class="absolute top-0 left-0 w-full h-full animate-pulse">
-            <div class="absolute top-20 left-20 w-64 h-64 rounded-full bg-indigo-600/20 blur-3xl"></div>
-            <div class="absolute bottom-20 right-20 w-64 h-64 rounded-full bg-cyan-600/20 blur-3xl"></div>
+            <div data-depth="30" class="absolute top-20 left-20 w-64 h-64 rounded-full bg-indigo-600/20 blur-3xl"></div>
+            <div data-depth="-40" class="absolute bottom-20 right-20 w-64 h-64 rounded-full bg-cyan-600/20 blur-3xl"></div>
         </div>
     </div>
 
@@ -334,15 +611,15 @@
                 <div class="hidden md:block">
                     <div class="ml-10 flex items-baseline space-x-4">
                         <a href="#home"
-                            class="text-indigo-400 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Home</a>
+                            class="nav-link text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Home</a>
                         <a href="#about"
-                            class="text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">About</a>
+                            class="nav-link text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">About</a>
                         <a href="#projects"
-                            class="text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Projects</a>
+                            class="nav-link text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Projects</a>
                         <a href="#skills"
-                            class="text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Skills</a>
+                            class="nav-link text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Skills</a>
                         <a href="#contact"
-                            class="text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Contact</a>
+                            class="nav-link text-slate-300 hover:text-indigo-300 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300">Contact</a>
                     </div>
                 </div>
                 <div class="md:hidden">
@@ -370,7 +647,7 @@
 
                 <h1 class="text-4xl md:text-6xl font-bold mb-4 text-white">
                     <span class="fade-in delay-1">Hey, I'm</span>
-                    <span class="block text-gold-400 mt-2 typing-text fade-in delay-2">Bala Abinesh</span>
+                    <span class="block text-gold-400 mt-2 name-shimmer fade-in delay-2">Bala Abinesh</span>
                 </h1>
 
                 <p class="text-xl md:text-2xl text-slate-300 mb-8 fade-in delay-1">
@@ -379,13 +656,10 @@
                     not just interfaces
                 </p>
 
-                <div class="roles-container !text-start h-12 mb-10 hidden md:block">
-                    <div class="rotating-roles text-xl text-slate-300">
-                        <span class="role">Full Stack Developer</span>
-                        <span class="role">Creative Technologist</span>
-                        <span class="role">Pixel Crafter</span>
-                        <span class="role">Problem Solver</span>
-                    </div>
+                <div class="h-10 mb-8 text-xl md:text-2xl font-medium text-slate-300 fade-in delay-3">
+                    <span class="text-slate-400">I'm a </span><span id="typed-role"
+                        class="text-indigo-300">Full Stack Developer</span><span class="type-caret"
+                        aria-hidden="true"></span>
                 </div>
 
                 <!-- Interactive Skills Carousel -->
@@ -439,11 +713,11 @@
 
                 <div class="flex justify-center space-x-4 fade-in delay-2">
                     <a href="#projects"
-                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center">
+                        class="magnetic px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white font-medium rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/40 flex items-center">
                         <i class="fas fa-code mr-2"></i> View My Work
                     </a>
                     <a href="#contact"
-                        class="px-6 py-3 border-2 border-gold-400 text-gold-400 hover:bg-gold-400/10 font-medium rounded-full transition-all duration-300 transform hover:scale-105 flex items-center">
+                        class="magnetic px-6 py-3 border-2 border-gold-400 text-gold-400 hover:bg-gold-400/10 font-medium rounded-full transition-all duration-300 transform hover:scale-105 flex items-center">
                         <i class="fas fa-paper-plane mr-2"></i> Contact Me
                     </a>
                 </div>
@@ -479,7 +753,7 @@
 
             <div class="flex flex-col md:flex-row items-center gap-12">
                 <!-- Profile Image -->
-                <div class="w-full md:w-1/3 flex justify-center fade-in">
+                <div class="w-full md:w-1/3 flex justify-center fade-in reveal-left">
                     <div class="relative glow-border rounded-full p-1">
                         <div
                             class="w-64 h-64 bg-gradient-to-br from-indigo-500 to-cyan-400 rounded-full overflow-hidden animate-pulse-scale">
@@ -511,7 +785,7 @@
 
 
                 <!-- About Info -->
-                <div class="w-full md:w-2/3 fade-in delay-1">
+                <div class="w-full md:w-2/3 fade-in delay-1 reveal-right">
                     <h3 class="text-2xl font-bold mb-4 text-indigo-400">Who am I?</h3>
                     <p class="text-slate-300 mb-6">
                         I'm a creative developer with 1+ years of experience building modern web applications and
@@ -699,7 +973,9 @@
                                 rel="noopener noreferrer">
                                 <i class="fas fa-external-link-alt mr-2"></i> Live Demo
                             </a>
-                            <a href="#" class="text-slate-300 hover:text-white">
+                            <a href="https://github.com/Abi6040/Happy_Birthady" target="_blank"
+                                rel="noopener noreferrer" aria-label="Source on GitHub"
+                                class="text-slate-300 hover:text-white">
                                 <i class="fab fa-github text-xl"></i>
                             </a>
                         </div>
@@ -708,7 +984,7 @@
             </div>
 
             <div class="text-center mt-12 fade-in delay-3">
-                <a href="#"
+                <a href="https://github.com/Abi6040?tab=repositories" target="_blank" rel="noopener noreferrer"
                     class="inline-block px-8 py-3 border-2 border-indigo-400 text-indigo-400 hover:bg-indigo-400/10 font-medium rounded-full transition-all duration-300 transform hover:scale-105">
                     View All Projects
                 </a>
@@ -846,7 +1122,7 @@
                                 class="w-full px-4 py-3 bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white placeholder-slate-500 transition-all duration-300"></textarea>
                         </div>
                         <button type="submit"
-                            class="w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-indigo-500/20">
+                            class="magnetic w-full px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-medium rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-indigo-500/20">
                             Send Message
                         </button>
                     </form>
@@ -935,7 +1211,7 @@
                     <a href="#" class="text-2xl font-bold text-white">
                         <span class="text-indigo-400 mr-2">Bala</span>Abinesh
                     </a>
-                    <p class="text-slate-400 mt-2">© 2023 Bala Abinesh. All rights reserved.</p>
+                    <p class="text-slate-400 mt-2">© <span id="year">2023</span> Bala Abinesh. All rights reserved.</p>
                 </div>
 
                 <div class="flex space-x-6">
@@ -966,7 +1242,7 @@
     <div id="mobile-menu"
         class="hidden fixed inset-0 bg-slate-900/95 backdrop-blur-sm z-40 flex items-center justify-center">
         <div class="flex flex-col items-center space-y-8">
-            <a href="#home" class="text-2xl text-indigo-400 hover:text-indigo-300 transition-all duration-300">Home</a>
+            <a href="#home" class="text-2xl text-slate-300 hover:text-indigo-300 transition-all duration-300">Home</a>
             <a href="#about" class="text-2xl text-slate-300 hover:text-indigo-300 transition-all duration-300">About</a>
             <a href="#projects"
                 class="text-2xl text-slate-300 hover:text-indigo-300 transition-all duration-300">Projects</a>
@@ -1006,15 +1282,16 @@
             }
             // Remove loading animation
             setTimeout(() => {
+                document.body.classList.add('loaded');
                 document.getElementById('loading').style.opacity = '0';
                 setTimeout(() => {
                     document.getElementById('loading').remove();
                 }, 500);
             }, 1000);
-            if (document.getElementById('particles-js')) {
+            if (document.getElementById('particles-js') && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
                 particlesJS('particles-js', {
                     particles: {
-                        number: { value: 80, density: { enable: true, value_area: 800 } },
+                        number: { value: window.innerWidth < 768 ? 35 : 80, density: { enable: true, value_area: 800 } },
                         color: { value: "#ffffff" },
                         shape: { type: "circle" },
                         opacity: { value: 0.5, random: true },
@@ -1138,6 +1415,11 @@
                     e.preventDefault();
 
                     const targetId = this.getAttribute('href');
+                    if (targetId === '#') {
+                        // Logo links scroll to top; placeholder links do nothing
+                        if (this.closest('nav, footer')) window.scrollTo({ top: 0, behavior: 'smooth' });
+                        return;
+                    }
                     const targetElement = document.querySelector(targetId);
 
                     if (targetElement) {
@@ -1153,6 +1435,284 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script>
         AOS.init();
+    </script>
+
+    <!-- Interactive & animated layer -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+            const $ = (s, c = document) => c.querySelector(s);
+            const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
+
+            // Safety net: never leave content gated if the loader script fails
+            setTimeout(() => document.body.classList.add('loaded'), 2500);
+
+            // Footer year
+            const year = $('#year');
+            if (year) year.textContent = new Date().getFullYear();
+
+            // Toast helper
+            const toast = $('#toast');
+            let toastTimer;
+            const showToast = (msg) => {
+                toast.textContent = msg;
+                toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => toast.classList.remove('show'), 3200);
+            };
+
+            // Section heading underline grows from the centre
+            $$('.w-20.h-1.bg-indigo-500').forEach(el => el.classList.add('line-grow'));
+
+            // Once an element has revealed, drop its stagger delay so hover effects respond instantly
+            $$('.fade-in').forEach(el => {
+                el.addEventListener('transitionend', (e) => {
+                    if (e.propertyName === 'opacity' && el.classList.contains('visible')) {
+                        el.classList.remove('delay-1', 'delay-2', 'delay-3', 'delay-4');
+                    }
+                });
+            });
+
+            // ---------- Scroll + pointer driven effects (one rAF loop) ----------
+            const progress = $('#scroll-progress');
+            const nav = $('nav');
+            const heroInner = $('#home > .max-w-7xl');
+            const blobs = $$('[data-depth]');
+            let mx = 0, my = 0, framePending = false;
+
+            const render = () => {
+                framePending = false;
+                const y = window.scrollY;
+                const max = document.documentElement.scrollHeight - window.innerHeight;
+                progress.style.transform = 'scaleX(' + (max > 0 ? Math.min(y / max, 1) : 0) + ')';
+                nav.classList.toggle('scrolled', y > 10);
+                if (reduceMotion) return;
+                if (heroInner) {
+                    const fade = Math.max(0, 1 - y / (window.innerHeight * 0.75));
+                    heroInner.style.transform = 'translate3d(0,' + (y * 0.25).toFixed(1) + 'px,0)';
+                    heroInner.style.opacity = fade.toFixed(3);
+                }
+                blobs.forEach(b => {
+                    const d = parseFloat(b.dataset.depth);
+                    b.style.transform = 'translate3d(' + (mx * d * 2).toFixed(1) + 'px,' + (my * d * 2 + y * d * 0.004).toFixed(1) + 'px,0)';
+                });
+            };
+            const requestRender = () => {
+                if (!framePending) { framePending = true; requestAnimationFrame(render); }
+            };
+            window.addEventListener('scroll', requestRender, { passive: true });
+            window.addEventListener('resize', requestRender);
+            render();
+
+            if (finePointer && !reduceMotion) {
+                window.addEventListener('pointermove', (e) => {
+                    mx = e.clientX / window.innerWidth - 0.5;
+                    my = e.clientY / window.innerHeight - 0.5;
+                    requestRender();
+                }, { passive: true });
+
+                // Cursor glow that eases toward the pointer
+                const glow = $('#cursor-glow');
+                let tx = 0, ty = 0, gx = 0, gy = 0, glowRunning = false;
+                const glowLoop = () => {
+                    gx += (tx - gx) * 0.14;
+                    gy += (ty - gy) * 0.14;
+                    glow.style.transform = 'translate3d(' + (gx - 200).toFixed(1) + 'px,' + (gy - 200).toFixed(1) + 'px,0)';
+                    if (Math.abs(tx - gx) > 0.5 || Math.abs(ty - gy) > 0.5) {
+                        requestAnimationFrame(glowLoop);
+                    } else {
+                        glowRunning = false;
+                    }
+                };
+                window.addEventListener('pointermove', (e) => {
+                    tx = e.clientX; ty = e.clientY;
+                    glow.style.opacity = '1';
+                    if (!glowRunning) { glowRunning = true; requestAnimationFrame(glowLoop); }
+                }, { passive: true });
+                document.documentElement.addEventListener('mouseleave', () => { glow.style.opacity = '0'; });
+            }
+
+            // ---------- Scroll-spy for nav ----------
+            const navLinks = $$('nav a[href^="#"], #mobile-menu a[href^="#"]').filter(a => a.getAttribute('href').length > 1);
+            const spySections = ['home', 'about', 'projects', 'skills', 'contact']
+                .map(id => document.getElementById(id)).filter(Boolean);
+            const setActive = (id) => navLinks.forEach(a => {
+                if (a.getAttribute('href') === '#' + id) a.setAttribute('aria-current', 'true');
+                else a.removeAttribute('aria-current');
+            });
+            const spy = new IntersectionObserver((entries) => {
+                entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id); });
+            }, { rootMargin: '-45% 0px -50% 0px' });
+            spySections.forEach(s => spy.observe(s));
+
+            // ---------- 3D tilt + glare on cards ----------
+            if (finePointer && !reduceMotion) {
+                $$('.project-card').forEach(c => c.dataset.tilt = '10');
+                $$('#skills .grid > div').forEach(c => { c.classList.add('skill-card'); c.dataset.tilt = '14'; });
+                $$('[data-tilt]').forEach(card => {
+                    const max = parseFloat(card.dataset.tilt);
+                    const glare = document.createElement('span');
+                    glare.className = 'tilt-glare';
+                    glare.setAttribute('aria-hidden', 'true');
+                    card.appendChild(glare);
+                    card.addEventListener('pointermove', (e) => {
+                        const r = card.getBoundingClientRect();
+                        const px = (e.clientX - r.left) / r.width;
+                        const py = (e.clientY - r.top) / r.height;
+                        card.style.transform = 'perspective(900px) rotateX(' + ((0.5 - py) * max).toFixed(2) + 'deg) rotateY(' +
+                            ((px - 0.5) * max).toFixed(2) + 'deg) translateY(-8px) scale(1.02)';
+                        card.style.setProperty('--mx', (px * 100).toFixed(1) + '%');
+                        card.style.setProperty('--my', (py * 100).toFixed(1) + '%');
+                        card.classList.add('is-tilting');
+                    });
+                    card.addEventListener('pointerleave', () => {
+                        card.style.transform = '';
+                        card.classList.remove('is-tilting');
+                    });
+                });
+            } else {
+                $$('#skills .grid > div').forEach(c => c.classList.add('skill-card'));
+            }
+
+            // ---------- Skill bars fill + count up ----------
+            const bars = $$('#skills .bg-slate-700.h-2 > div');
+            const countUp = (el, to, ms) => {
+                const start = performance.now();
+                const tick = (now) => {
+                    const t = Math.min((now - start) / ms, 1);
+                    el.textContent = Math.round(to * (1 - Math.pow(1 - t, 3))) + '%';
+                    if (t < 1) requestAnimationFrame(tick);
+                };
+                requestAnimationFrame(tick);
+            };
+            const barObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (!entry.isIntersecting) return;
+                    const bar = entry.target;
+                    const target = parseFloat(bar.dataset.target);
+                    const label = bar.parentElement.nextElementSibling;
+                    barObserver.unobserve(bar);
+                    setTimeout(() => {
+                        bar.style.width = target + '%';
+                        if (reduceMotion) label.textContent = target + '%';
+                        else countUp(label, target, 1400);
+                    }, 250);
+                });
+            }, { threshold: 0.6 });
+            bars.forEach(bar => {
+                const target = parseFloat(bar.style.width) || 0;
+                bar.dataset.target = target;
+                const label = document.createElement('span');
+                label.className = 'block text-xs text-slate-400 mt-2 tabular-nums';
+                label.textContent = reduceMotion ? target + '%' : '0%';
+                bar.parentElement.after(label);
+                if (!reduceMotion) { bar.classList.add('skill-bar'); bar.style.width = '0%'; }
+                barObserver.observe(bar);
+            });
+
+            // ---------- Magnetic buttons ----------
+            if (finePointer && !reduceMotion) {
+                $$('.magnetic').forEach(btn => {
+                    btn.addEventListener('pointermove', (e) => {
+                        const r = btn.getBoundingClientRect();
+                        btn.style.setProperty('--tw-translate-x', ((e.clientX - (r.left + r.width / 2)) * 0.25).toFixed(1) + 'px');
+                        btn.style.setProperty('--tw-translate-y', ((e.clientY - (r.top + r.height / 2)) * 0.35).toFixed(1) + 'px');
+                    });
+                    btn.addEventListener('pointerleave', () => {
+                        btn.style.removeProperty('--tw-translate-x');
+                        btn.style.removeProperty('--tw-translate-y');
+                    });
+                });
+            }
+
+            // ---------- Typewriter roles ----------
+            const typed = $('#typed-role');
+            if (typed && !reduceMotion) {
+                const roles = ['Full Stack Developer', 'Creative Technologist', 'Pixel Crafter', 'Problem Solver'];
+                let i = 0, j = 0, deleting = false;
+                const tick = () => {
+                    const word = roles[i];
+                    typed.textContent = word.slice(0, j);
+                    let delay = deleting ? 35 : 70;
+                    if (!deleting && j === word.length) { deleting = true; delay = 1600; }
+                    else if (deleting && j === 0) { deleting = false; i = (i + 1) % roles.length; delay = 300; }
+                    else { j += deleting ? -1 : 1; }
+                    setTimeout(tick, delay);
+                };
+                typed.textContent = '';
+                setTimeout(tick, 1400);
+            }
+
+            // ---------- Mobile menu polish ----------
+            const menuBtn = $('#mobile-menu-button');
+            const menu = $('#mobile-menu');
+            if (menuBtn && menu) {
+                const icon = $('i', menuBtn);
+                // Runs after the page's own toggle handler (registered earlier)
+                const syncMenu = () => {
+                    const open = !menu.classList.contains('hidden');
+                    icon.classList.toggle('fa-bars', !open);
+                    icon.classList.toggle('fa-xmark', open);
+                    menuBtn.setAttribute('aria-expanded', String(open));
+                    menuBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+                    document.body.style.overflow = open ? 'hidden' : '';
+                };
+                menuBtn.addEventListener('click', syncMenu);
+                $$('a', menu).forEach(a => a.addEventListener('click', syncMenu));
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && !menu.classList.contains('hidden')) {
+                        menu.classList.add('hidden');
+                        syncMenu();
+                    }
+                });
+                menuBtn.setAttribute('aria-expanded', 'false');
+                menuBtn.setAttribute('aria-label', 'Open menu');
+            }
+
+            // ---------- Resume overlay: Esc + click-outside to close ----------
+            const overlay = $('#resumeOverlay');
+            if (overlay) {
+                overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.add('hidden'); });
+                document.addEventListener('keydown', (e) => { if (e.key === 'Escape') overlay.classList.add('hidden'); });
+                new MutationObserver(() => {
+                    if (!menu || menu.classList.contains('hidden')) {
+                        document.body.style.overflow = overlay.classList.contains('hidden') ? '' : 'hidden';
+                    }
+                }).observe(overlay, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            // ---------- Contact form: validate, then open the visitor's email app ----------
+            const form = $('#contact form');
+            if (form) {
+                form.noValidate = true;
+                const f = { name: $('#name'), email: $('#email'), subject: $('#subject'), message: $('#message') };
+                Object.values(f).forEach(el => el.addEventListener('input', () => el.classList.remove('field-invalid')));
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    let ok = true;
+                    ['name', 'email', 'message'].forEach(k => {
+                        const v = f[k].value.trim();
+                        const valid = k === 'email' ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) : v.length > 0;
+                        f[k].classList.toggle('field-invalid', !valid);
+                        if (!valid) ok = false;
+                    });
+                    if (!ok) {
+                        form.classList.remove('shake');
+                        void form.offsetWidth;
+                        form.classList.add('shake');
+                        showToast('Please add your name, a valid email and a message.');
+                        return;
+                    }
+                    const subject = f.subject.value.trim() || 'Portfolio enquiry from ' + f.name.value.trim();
+                    const body = f.message.value.trim() + '\n\n— ' + f.name.value.trim() + ' (' + f.email.value.trim() + ')';
+                    window.location.href = 'mailto:balaabinesh88@gmail.com?subject=' + encodeURIComponent(subject) +
+                        '&body=' + encodeURIComponent(body);
+                    showToast('Opening your email app…');
+                    form.reset();
+                });
+            }
+        });
     </script>
 
 </body>
